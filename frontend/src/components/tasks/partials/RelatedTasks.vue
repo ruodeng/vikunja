@@ -89,7 +89,7 @@
 									{{ $t('task.relation.select') }}
 								</option>
 								<option
-									v-for="rk in RELATION_KINDS"
+									v-for="rk in availableRelationKinds"
 									:key="`option_${rk}`"
 									:value="rk"
 								>
@@ -191,6 +191,7 @@ import TaskService from '@/services/task'
 import TaskModel from '@/models/task'
 import type {ITask} from '@/modelTypes/ITask'
 import type {ITaskRelation} from '@/modelTypes/ITaskRelation'
+import {PERMISSIONS} from '@/constants/permissions'
 import {RELATION_KINDS, type IRelationKind} from '@/types/IRelationKind'
 
 import TaskRelationService from '@/services/taskRelation'
@@ -273,6 +274,15 @@ function mapRelatedTasks(tasks: ITask[]) {
 		}
 	})
 }
+
+const availableRelationKinds = computed(() => {
+	// If the user has full write access (admin or editor), show all relations
+	if (props.projectId && projectStore.projects[props.projectId]?.maxPermission >= PERMISSIONS.READ_WRITE) {
+		return RELATION_KINDS
+	}
+	// For executors, only allow subtasks
+	return ['subtask']
+})
 
 const mapRelationKindsTitleGetter = computed(() => ({
 	'subtask': (count: number) => t('task.relation.kinds.subtask', count),
@@ -362,9 +372,28 @@ async function removeTaskRelation() {
 }
 
 async function createAndRelateTask(title: string) {
-	const newTask = await taskService.create(new TaskModel({title, projectId: props.projectId}))
-	newTaskRelation.task = newTask
-	await addTaskRelation()
+	const newTaskParams = {
+		title, 
+		projectId: props.projectId,
+		relatedTasks: {},
+	}
+	// @ts-expect-error relatedTasks is not fully typed in the model constructor but effectively works for passing data
+	newTaskParams.relatedTasks[newTaskRelation.kind] = [{ id: props.taskId }]
+	
+	const newTask = await taskService.create(new TaskModel(newTaskParams))
+	
+	relatedTasks.value[newTaskRelation.kind] = [
+		...(relatedTasks.value[newTaskRelation.kind] || []),
+		newTask,
+	]
+
+	newTaskRelation.task = new TaskModel()
+	newTaskRelation.kind = authStore.settings.frontendSettings.defaultTaskRelationType as IRelationKind
+	saved.value = true
+	showNewRelationForm.value = false
+	setTimeout(() => {
+		saved.value = false
+	}, 2000)
 }
 
 async function toggleTaskDone(task: ITask) {

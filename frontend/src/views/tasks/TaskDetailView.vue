@@ -404,6 +404,7 @@
 					<!-- Comments -->
 					<Comments
 						:can-write="canWrite"
+						:can-comment="canComment"
 						:task-id="taskId"
 						:project-id="task.projectId"
 						:initial-comments="task.comments"
@@ -787,9 +788,24 @@ const projectRoute = computed(() => ({
 	hash: route.hash,
 }))
 
-const canWrite = computed(() => (
+const isAssignee = computed(() => {
+	return task.value.assignees?.some(u => u.id === authStore.info?.id) ?? false
+})
+
+const canWrite = computed(() => {
+	if (isAssignee.value) {
+		return true
+	}
+	if (task.value.createdBy?.id === authStore.info?.id) {
+		return true
+	}
+	return task.value.maxPermission !== null &&
+		task.value.maxPermission >= PERMISSIONS.READ_WRITE
+})
+
+const canComment = computed(() => (
 	task.value.maxPermission !== null &&
-	task.value.maxPermission > PERMISSIONS.READ
+	task.value.maxPermission >= PERMISSIONS.EXECUTOR
 ))
 
 const color = computed(() => {

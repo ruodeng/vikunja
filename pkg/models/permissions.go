@@ -30,6 +30,8 @@ const (
 	PermissionUnknown = -1
 	// Can read projects in a
 	PermissionRead Permission = iota - 1
+	// Can interact with projects and tasks, but cannot make structural changes.
+	PermissionExecutor
 	// Can write in a like projects and tasks. Cannot create new projects.
 	PermissionWrite
 	// Can manage a project, can do everything
@@ -37,7 +39,7 @@ const (
 )
 
 func (r Permission) isValid() error {
-	if r != PermissionAdmin && r != PermissionRead && r != PermissionWrite {
+	if r != PermissionAdmin && r != PermissionRead && r != PermissionWrite && r != PermissionExecutor {
 		return ErrInvalidPermission{r}
 	}
 
@@ -65,8 +67,10 @@ func (r *Permission) UnmarshalJSON(data []byte) error {
 	case 0:
 		*r = PermissionRead
 	case 1:
-		*r = PermissionWrite
+		*r = PermissionExecutor
 	case 2:
+		*r = PermissionWrite
+	case 3:
 		*r = PermissionAdmin
 	default:
 		return fmt.Errorf("invalid Permission %q", s)

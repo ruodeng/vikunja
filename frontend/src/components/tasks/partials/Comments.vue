@@ -5,7 +5,7 @@
 		class="content details comments-container"
 	>
 		<h3
-			v-if="canWrite || comments.length > 0"
+			v-if="canWrite || canComment || comments.length > 0"
 			:class="{'d-print-none': comments.length === 0}"
 		>
 			<span class="icon is-grey">
@@ -133,7 +133,7 @@
 			/>
 
 			<div
-				v-if="canWrite"
+				v-if="canWrite || canComment"
 				class="media comment d-print-none"
 			>
 				<figure class="media-left is-hidden-mobile">
@@ -239,9 +239,11 @@ const props = withDefaults(defineProps<{
 	taskId: number,
 	projectId: number,
 	canWrite?: boolean
+	canComment?: boolean
 	initialComments: ITaskComment[]
 }>(), {
 	canWrite: true,
+	canComment: false,
 })
 
 const copy = useCopyToClipboard()

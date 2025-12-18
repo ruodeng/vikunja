@@ -71,6 +71,51 @@ func (p *Project) CanWrite(s *xorm.Session, a web.Auth) (bool, error) {
 	return canWrite, errIsArchived
 }
 
+// CanExecute return whether the user can write on that project or not
+func (p *Project) CanExecute(s *xorm.Session, a web.Auth) (bool, error) {
+
+	// The favorite project can't be edited
+	if p.ID == FavoritesPseudoProject.ID {
+		return false, nil
+	}
+
+	// Get the project and check the permission
+	originalProject, err := GetProjectSimpleByID(s, p.ID)
+	if err != nil {
+		return false, err
+	}
+
+	// We put the result of the is archived check in a separate variable to be able to return it later without
+	// needing to recheck it again
+	errIsArchived := originalProject.CheckIsArchived(s)
+
+	var canWrite bool
+
+	// Check if we're dealing with a share auth
+	shareAuth, ok := a.(*LinkSharing)
+	if ok {
+		return originalProject.ID == shareAuth.ProjectID &&
+			(shareAuth.Permission == PermissionExecutor || shareAuth.Permission == PermissionWrite || shareAuth.Permission == PermissionAdmin), errIsArchived
+	}
+
+	u := &user.User{ID: a.GetID()}
+
+	// Check if the user is either owner or can write to the project
+	if originalProject.isOwner(u) {
+		canWrite = true
+	}
+
+	if canWrite {
+		return canWrite, errIsArchived
+	}
+
+	canWrite, _, err = originalProject.checkPermission(s, u, PermissionExecutor, PermissionWrite, PermissionAdmin)
+	if err != nil {
+		return false, err
+	}
+	return canWrite, errIsArchived
+}
+
 // CanRead checks if a user has read access to a project
 func (p *Project) CanRead(s *xorm.Session, a web.Auth) (bool, int, error) {
 
@@ -105,10 +150,10 @@ func (p *Project) CanRead(s *xorm.Session, a web.Auth) (bool, int, error) {
 	shareAuth, ok := a.(*LinkSharing)
 	if ok {
 		return p.ID == shareAuth.ProjectID &&
-			(shareAuth.Permission == PermissionRead || shareAuth.Permission == PermissionWrite || shareAuth.Permission == PermissionAdmin), int(shareAuth.Permission), nil
+			(shareAuth.Permission == PermissionRead || shareAuth.Permission == PermissionExecutor || shareAuth.Permission == PermissionWrite || shareAuth.Permission == PermissionAdmin), int(shareAuth.Permission), nil
 	}
 
-	return p.checkPermission(s, &user.User{ID: a.GetID()}, PermissionRead, PermissionWrite, PermissionAdmin)
+	return p.checkPermission(s, &user.User{ID: a.GetID()}, PermissionRead, PermissionExecutor, PermissionWrite, PermissionAdmin)
 }
 
 // CanUpdate checks if the user can update a project
@@ -285,7 +330,7 @@ WITH RECURSIVE
     project_permissions AS (SELECT ph.id,
                                    ph.original_project_id,
                                    CASE
-                                       WHEN p.owner_id = ? THEN 2
+                                       WHEN p.owner_id = ? THEN 3
                                        WHEN COALESCE(ul.permission, 0) > COALESCE(mtp.max_team_permission, 0) THEN ul.permission
                                        ELSE COALESCE(mtp.max_team_permission, 0)
                                        END AS project_permission,

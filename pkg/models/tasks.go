@@ -970,6 +970,23 @@ func createTask(s *xorm.Session, t *Task, a web.Auth, updateAssignees bool, setB
 		return err
 	}
 
+	// Update related tasks
+	if len(t.RelatedTasks) > 0 {
+		for kind, tasks := range t.RelatedTasks {
+			for _, otherTask := range tasks {
+				rel := &TaskRelation{
+					TaskID:       t.ID,
+					OtherTaskID:  otherTask.ID,
+					RelationKind: kind,
+					CreatedBy:    createdBy,
+				}
+				if err := rel.Create(s, a); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	t.setIdentifier(p)
 
 	if t.IsFavorite {
@@ -1098,11 +1115,60 @@ func (t *Task) updateSingleTask(s *xorm.Session, a web.Auth, fields []string) (e
 	}
 
 	// Old task has the stored reminders
+	// Old task has the stored reminders
 	ot.Reminders = reminders
 
-	// Update the assignees
-	if err := ot.updateTaskAssignees(s, t.Assignees, a); err != nil {
+	// Check if the user has write access
+	// If the user only has restricted access, we reset all fields that are not allowed to be changed
+	// This includes everything except the done status
+	p := &Project{ID: ot.ProjectID}
+	canWrite, err := p.CanWrite(s, a)
+	if err != nil {
 		return err
+	}
+
+	// Check if the user is an assignee
+	isAssignee, err := ot.IsAssignee(s, a)
+	if err != nil {
+		return err
+	}
+
+	// Check if the user is the creator
+	isCreator := ot.CreatedByID == a.GetID()
+
+	if !canWrite && !isAssignee && !isCreator {
+		t.Title = ot.Title
+		t.Description = ot.Description
+		t.DueDate = ot.DueDate
+		t.RepeatAfter = ot.RepeatAfter
+		t.Priority = ot.Priority
+		t.StartDate = ot.StartDate
+		t.EndDate = ot.EndDate
+		t.HexColor = ot.HexColor
+		t.PercentDone = ot.PercentDone
+		t.ProjectID = ot.ProjectID
+		t.BucketID = ot.BucketID
+		t.RepeatMode = ot.RepeatMode
+		t.CoverImageAttachmentID = ot.CoverImageAttachmentID
+		t.Assignees = nil // Prevent assignee update
+		t.Reminders = ot.Reminders
+
+		// Labels are currently not updated here, so we're good
+	}
+
+	// If the user is an assignee but has no write access and is not the creator, we allow them to update the task, but not the project or assignees
+	if !canWrite && isAssignee && !isCreator {
+		t.ProjectID = ot.ProjectID
+		t.Assignees = nil // Prevent assignee update
+	}
+
+	// Update the assignees
+	// Only update assignees if the user has write access to the project OR is the creator.
+	// Assignees are not allowed to change the assignees of a task unless they are the creator.
+	if canWrite || isCreator {
+		if err := ot.updateTaskAssignees(s, t.Assignees, a); err != nil {
+			return err
+		}
 	}
 
 	// All columns to update in a separate variable to be able to add to them
@@ -1386,6 +1452,17 @@ func (t *Task) updateSingleTask(s *xorm.Session, a web.Auth, fields []string) (e
 	*t = ot
 	if err != nil {
 		return err
+	}
+
+	// Reload assignees to ensure they are returned to the frontend.
+	// This is important for the frontend to determine if the current user is an assignee.
+	currentAssignees, err := getRawTaskAssigneesForTasks(s, []int64{t.ID})
+	if err != nil {
+		return err
+	}
+	t.Assignees = make([]*user.User, 0, len(currentAssignees))
+	for i := range currentAssignees {
+		t.Assignees = append(t.Assignees, &currentAssignees[i].User)
 	}
 
 	// Get the task updated timestamp in a new struct - if we'd just try to put it into t which we already have, it

@@ -59,6 +59,9 @@ func ListUsersFromProject(s *xorm.Session, l *Project, currentUser *user.User, s
 					builder.Or(builder.Eq{"ul.permission": PermissionRead}),
 					builder.Or(builder.Eq{"tl.permission": PermissionRead}),
 
+					builder.Or(builder.Eq{"ul.permission": PermissionExecutor}),
+					builder.Or(builder.Eq{"tl.permission": PermissionExecutor}),
+
 					builder.Or(builder.Eq{"ul.permission": PermissionWrite}),
 					builder.Or(builder.Eq{"tl.permission": PermissionWrite}),
 

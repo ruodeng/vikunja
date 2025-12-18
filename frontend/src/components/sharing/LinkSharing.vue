@@ -43,6 +43,9 @@
 								<option :value="PERMISSIONS.READ_WRITE">
 									{{ $t('project.share.permission.readWrite') }}
 								</option>
+								<option :value="PERMISSIONS.EXECUTOR">
+									{{ $t('project.share.permission.executor') }}
+								</option>
 								<option :value="PERMISSIONS.ADMIN">
 									{{ $t('project.share.permission.admin') }}
 								</option>
@@ -140,6 +143,12 @@
 										<Icon icon="pen" />
 									</span>&nbsp;
 									{{ $t('project.share.permission.readWrite') }}
+								</template>
+								<template v-else-if="s.permission === PERMISSIONS.EXECUTOR">
+									<span class="icon is-small">
+										<Icon icon="eye" />
+									</span>&nbsp;
+									{{ $t('project.share.permission.executor') }}
 								</template>
 								<template v-else>
 									<span class="icon is-small">

@@ -83,6 +83,12 @@
 							</span>
 							{{ $t('project.share.permission.readWrite') }}
 						</template>
+						<template v-else-if="s.permission === PERMISSIONS.EXECUTOR">
+							<span class="icon is-small">
+								<Icon icon="eye" />
+							</span>
+							{{ $t('project.share.permission.executor') }}
+						</template>
 						<template v-else>
 							<span class="icon is-small">
 								<Icon icon="users" />
@@ -111,6 +117,12 @@
 									:value="PERMISSIONS.READ_WRITE"
 								>
 									{{ $t('project.share.permission.readWrite') }}
+								</option>
+								<option
+									:selected="s.permission === PERMISSIONS.EXECUTOR"
+									:value="PERMISSIONS.EXECUTOR"
+								>
+									{{ $t('project.share.permission.executor') }}
 								</option>
 								<option
 									:selected="s.permission === PERMISSIONS.ADMIN"
@@ -178,7 +190,7 @@ import TeamModel from '@/models/team'
 import type {ITeam} from '@/modelTypes/ITeam'
 
 
-import {PERMISSIONS} from '@/constants/permissions'
+import {PERMISSIONS, type Permission} from '@/constants/permissions'
 import Multiselect from '@/components/input/Multiselect.vue'
 import Nothing from '@/components/misc/Nothing.vue'
 import {success} from '@/message'
@@ -209,7 +221,7 @@ let searchService: UserService | TeamService
 let sharable: Ref<IUser | ITeam>
 
 const searchLabel = ref('')
-const selectedPermission = ref({})
+const selectedPermission = ref<Record<number, Permission>>({})
 
 
 // This holds either teams or users who this namepace or project is shared with
@@ -329,11 +341,12 @@ async function toggleType(sharable) {
 	if (
 		selectedPermission.value[sharable.id] !== PERMISSIONS.ADMIN &&
 		selectedPermission.value[sharable.id] !== PERMISSIONS.READ &&
-		selectedPermission.value[sharable.id] !== PERMISSIONS.READ_WRITE
+		selectedPermission.value[sharable.id] !== PERMISSIONS.READ_WRITE &&
+		selectedPermission.value[sharable.id] !== PERMISSIONS.EXECUTOR
 	) {
 		selectedPermission.value[sharable.id] = PERMISSIONS.READ
 	}
-	stuffModel.permission = selectedPermission.value[sharable.id]
+	stuffModel.permission = selectedPermission.value[sharable.id]!
 
 	if (props.shareType === 'user') {
 		stuffModel.username = sharable.username

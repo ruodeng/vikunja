@@ -349,6 +349,7 @@
       "permission": {
         "title": "Permission",
         "read": "Read only",
+        "executor": "Executor",
         "readWrite": "Read & write",
         "admin": "Admin"
       },
