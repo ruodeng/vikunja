@@ -4,7 +4,15 @@
     "welcomeMorning": "Good Morning {username}!",
     "welcomeDay": "Hi {username}!",
     "welcomeEvening": "Good Evening {username}!",
-    "lastViewed": "Last viewed",
+    "greets": {
+      "morning": "Good morning",
+      "noon": "Good noon",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
+    "lastViewed": "Last viewed projects",
+    "stats": "Overview",
     "addToHomeScreen": "Add this app to your home screen for faster access and improved experience.",
     "goToOverview": "Go to overview",
     "project": {
@@ -794,6 +802,11 @@
   },
   "task": {
     "task": "Task",
+    "stats": {
+      "inProgress": "In Progress",
+      "overdue": "Overdue",
+      "comments": "Comments"
+    },
     "new": "Create a task",
     "delete": "Delete this task",
     "createSuccess": "The task was successfully created.",
@@ -1187,7 +1200,8 @@
     "none": "You don't have any notifications. Have a nice day!",
     "explainer": "Notifications will appear here when actions, projects or tasks you subscribed to happen.",
     "markAllRead": "Mark all notifications as read",
-    "markAllReadSuccess": "Successfully marked all notifications as read."
+    "markAllReadSuccess": "Successfully marked all notifications as read.",
+    "markRead": "Mark as read"
   },
   "quickActions": {
     "commands": "Commands",

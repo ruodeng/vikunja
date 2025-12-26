@@ -9,6 +9,7 @@
 		"welcomeDay": "嗨~，{username}！",
 		"welcomeEvening": "中午好，{username}！",
 		"lastViewed": "最近查看",
+		"stats": "概览",
 		"addToHomeScreen": "将此应用程序添加到您的主屏幕以便更快地访问和改善体验。",
 		"goToOverview": "转到概览",
 		"project": {
@@ -754,6 +755,11 @@
 	},
 	"task": {
 		"task": "任务",
+		"stats": {
+			"inProgress": "进行中",
+			"overdue": "已逾期",
+			"comments": "通知"
+		},
 		"new": "新建任务",
 		"delete": "删除此任务",
 		"createSuccess": "成功创建任务",
@@ -1135,7 +1141,8 @@
 		"none": "没有任何通知。 祝你今天过得愉快！",
 		"explainer": "当订阅的项目或任务发生操作时，通知会出现在这里。",
 		"markAllRead": "将所有通知标为已读",
-		"markAllReadSuccess": "成功标记所有通知为已读。"
+		"markAllReadSuccess": "成功标记所有通知为已读。",
+		"markRead": "标为已读"
 	},
 	"quickActions": {
 		"commands": "命令",
