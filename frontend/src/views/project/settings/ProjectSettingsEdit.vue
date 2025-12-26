@@ -2,7 +2,6 @@
 	<CreateEdit
 		v-model:loading="loadingModel"
 		:title="$t('project.edit.header')"
-		primary-icon=""
 		:primary-label="$t('misc.save')"
 		:tertiary="project.maxPermission === PERMISSIONS.ADMIN ? $t('misc.delete') : undefined"
 		@primary="save"
@@ -81,20 +80,60 @@
 				</div>
 			</div>
 		</div>
+		
+		<div class="columns">
+			<div class="column field">
+				<label class="label">{{ $t('task.assignee.label') }}</label>
+				<div class="control">
+					<Multiselect
+						v-model="project.assignees"
+						:multiple="true"
+						:close-after-select="false"
+						:search-results="foundUsers"
+						label="name"
+						:placeholder="$t('task.assignee.placeholder')"
+						:select-placeholder="$t('task.assignee.selectPlaceholder')"
+						@search="findUser"
+					>
+						<template #searchResult="{option: user}">
+							<User
+								:avatar-size="24"
+								:show-username="true"
+								:user="user"
+							/>
+						</template>
+					</Multiselect>
+				</div>
+			</div>
+			
+			<div class="column field">
+				<label class="label">{{ $t('task.dueDate') }}</label>
+				<div class="control">
+					<Datepicker
+						v-model="project.endDate"
+						:choose-date-label="$t('task.chooseDueDate')"
+					/>
+				</div>
+			</div>
+		</div>
 	</CreateEdit>
 </template>
 
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
-import {useI18n} from 'vue-i18n'
-
 import Editor from '@/components/input/AsyncEditor'
-import ColorPicker from '@/components/input/ColorPicker.vue'
 import CreateEdit from '@/components/misc/CreateEdit.vue'
 import ProjectSearch from '@/components/tasks/partials/ProjectSearch.vue'
+import Datepicker from '@/components/input/Datepicker.vue'
+import Multiselect from '@/components/input/Multiselect.vue'
+import User from '@/components/misc/User.vue'
+import ColorPicker from '@/components/input/ColorPicker.vue'
+import {useI18n} from 'vue-i18n'
 
 import type {IProject} from '@/modelTypes/IProject'
+import type {IUser} from '@/modelTypes/IUser'
+import UserService from '@/services/user'
 
 import {useBaseStore} from '@/stores/base'
 import {useProjectStore} from '@/stores/projects'
@@ -118,6 +157,15 @@ const {project, save: saveProject, isLoading} = useProject(() => props.projectId
 
 const parentProject = ref<IProject | null>(null)
 const isSaving = ref(false)
+
+const userService = new UserService()
+const foundUsers = ref<IUser[]>([])
+
+async function findUser(query: string) {
+	if (!query) return
+	foundUsers.value = await userService.getAll(undefined, {s: query}) as IUser[]
+}
+
 
 const loadingModel = computed({
 	get: () => isSaving.value || isLoading.value,

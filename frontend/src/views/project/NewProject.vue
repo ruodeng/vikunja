@@ -48,6 +48,42 @@
 				<ColorPicker v-model="project.hexColor" />
 			</div>
 		</div>
+		
+		<div class="columns">
+			<div class="column field">
+				<label class="label">{{ $t('task.assignee.label') }}</label>
+				<div class="control">
+					<Multiselect
+						v-model="project.assignees"
+						:multiple="true"
+						:close-after-select="false"
+						:search-results="foundUsers"
+						label="name"
+						:placeholder="$t('task.assignee.placeholder')"
+						:select-placeholder="$t('task.assignee.selectPlaceholder')"
+						@search="findUser"
+					>
+						<template #searchResult="{option: user}">
+							<User
+								:avatar-size="24"
+								:show-username="true"
+								:user="user"
+							/>
+						</template>
+					</Multiselect>
+				</div>
+			</div>
+			
+			<div class="column field">
+				<label class="label">{{ $t('task.dueDate') }}</label>
+				<div class="control">
+					<Datepicker
+						v-model="project.endDate"
+						:choose-date-label="$t('task.chooseDueDate')"
+					/>
+				</div>
+			</div>
+		</div>
 	</CreateEdit>
 </template>
 
@@ -59,12 +95,18 @@ import ProjectService from '@/services/project'
 import ProjectModel from '@/models/project'
 import CreateEdit from '@/components/misc/CreateEdit.vue'
 import ColorPicker from '@/components/input/ColorPicker.vue'
+import Datepicker from '@/components/input/Datepicker.vue'
+import Multiselect from '@/components/input/Multiselect.vue'
+import User from '@/components/misc/User.vue'
 
 import {success} from '@/message'
 import {useTitle} from '@/composables/useTitle'
 import {useProjectStore} from '@/stores/projects'
 import ProjectSearch from '@/components/tasks/partials/ProjectSearch.vue'
 import type {IProject} from '@/modelTypes/IProject'
+import type {IUser} from '@/modelTypes/IUser'
+import UserService from '@/services/user'
+import {useAuthStore} from '@/stores/auth'
 
 const props = defineProps<{
 	parentProjectId?: number,
@@ -81,9 +123,28 @@ const projectStore = useProjectStore()
 const parentProject = ref<IProject | null>(null)
 const isSubmitting = ref(false)
 
+const authStore = useAuthStore()
+const userService = new UserService()
+const foundUsers = ref<IUser[]>([])
+
+// Init default assignees
+if (authStore.info) {
+	project.assignees = [authStore.info]
+}
+
+async function findUser(query: string) {
+	if (!query) return
+	foundUsers.value = await userService.getAll(undefined, {s: query}) as IUser[]
+}
+
+
 watch(
 	() => props.parentProjectId,
-	() => parentProject.value = projectStore.projects[props.parentProjectId],
+	parentProjectId => {
+		if (parentProjectId && projectStore.projects[parentProjectId]) {
+			parentProject.value = projectStore.projects[parentProjectId]
+		}
+	},
 	{immediate: true},
 )
 

@@ -250,6 +250,7 @@
 			"archiveText": "在您取消归档之前，您将无法编辑此项目或新建任务。",
 			"success": "项目已成功归档。"
 		},
+		"overdue": "超时",
 		"background": {
 			"title": "设置项目背景",
 			"remove": "删除背景",
@@ -754,6 +755,7 @@
 	},
 	"task": {
 		"task": "任务",
+		"dueDate": "截止日期",
 		"new": "新建任务",
 		"delete": "删除此任务",
 		"createSuccess": "成功创建任务",
@@ -893,6 +895,7 @@
 			"empty": "尚无描述。"
 		},
 		"assignee": {
+			"label": "受理人",
 			"placeholder": "分配给用户...",
 			"selectPlaceholder": "分配给用户",
 			"assignSuccess": "已成功分配用户。",

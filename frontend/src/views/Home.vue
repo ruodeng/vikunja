@@ -63,6 +63,7 @@ import {useDaytimeSalutation} from '@/composables/useDaytimeSalutation'
 
 import {useProjectStore} from '@/stores/projects'
 import {useAuthStore} from '@/stores/auth'
+import type {IProject} from '@/modelTypes/IProject'
 
 const salutation = useDaytimeSalutation()
 
@@ -79,7 +80,7 @@ const projectHistory = computed(() => {
 	
 	return getHistory()
 		.map(l => projectStore.projects[l.id])
-		.filter(l => Boolean(l))
+		.filter(l => Boolean(l)) as IProject[]
 })
 
 const tasksLoaded = ref(false)

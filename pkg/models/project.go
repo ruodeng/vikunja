@@ -58,6 +58,12 @@ type Project struct {
 	// Whether a project is archived.
 	IsArchived bool `xorm:"not null default false" json:"is_archived" query:"is_archived"`
 
+	// An array of users who are assigned to this project
+	Assignees []*user.User `xorm:"-" json:"assignees" valid:"-"`
+
+	// The time when the project is due.
+	EndDate time.Time `xorm:"DATETIME INDEX null" json:"end_date"`
+
 	// The id of the file this project has set as background
 	BackgroundFileID int64 `xorm:"null" json:"-"`
 	// Holds extra information about the background set since some background providers require attribution or similar. If not null, the background can be accessed at /projects/{projectID}/background
@@ -313,6 +319,16 @@ func (p *Project) ReadOne(s *xorm.Session, a web.Auth) (err error) {
 		return err
 	}
 
+	// Add all project assignees
+	assignees, err := getRawProjectAssigneesForProjects(s, []int64{p.ID})
+	if err != nil {
+		return err
+	}
+	p.Assignees = make([]*user.User, 0, len(assignees))
+	for _, assignee := range assignees {
+		p.Assignees = append(p.Assignees, &assignee.User)
+	}
+
 	// Check if the project is archived and set it to archived if it is not already archived individually.
 	if !p.IsArchived && !isFilter {
 		err = p.CheckIsArchived(s)
@@ -547,6 +563,8 @@ INNER JOIN all_projects ap ON p.parent_project_id = ap.id`
 		"all_projects.identifier",
 		"all_projects.hex_color",
 		"all_projects.owner_id",
+		"all_projects.end_date",
+		"CASE WHEN all_projects.parent_project_id IS NULL THEN 0 ELSE all_projects.parent_project_id END AS parent_project_id",
 		"CASE WHEN all_projects.parent_project_id IS NULL THEN 0 ELSE all_projects.parent_project_id END AS parent_project_id",
 		"all_projects.is_archived",
 		"all_projects.background_file_id",
@@ -715,6 +733,19 @@ func addProjectDetails(s *xorm.Session, projects []*Project, a web.Auth) (err er
 		viewMap[v.ProjectID] = append(viewMap[v.ProjectID], v)
 	}
 
+	assignees, err := getRawProjectAssigneesForProjects(s, projectIDs)
+	if err != nil {
+		return err
+	}
+
+	assigneesMap := make(map[int64][]*user.User)
+	for _, a := range assignees {
+		if _, exists := assigneesMap[a.ProjectID]; !exists {
+			assigneesMap[a.ProjectID] = []*user.User{}
+		}
+		assigneesMap[a.ProjectID] = append(assigneesMap[a.ProjectID], &a.User)
+	}
+
 	for _, p := range projects {
 		if o, exists := owners[p.OwnerID]; exists {
 			p.Owner = o
@@ -736,6 +767,10 @@ func addProjectDetails(s *xorm.Session, projects []*Project, a web.Auth) (err er
 		vs, has := viewMap[p.ID]
 		if has {
 			p.Views = vs
+		}
+
+		if as, has := assigneesMap[p.ID]; has {
+			p.Assignees = as
 		}
 	}
 
@@ -913,6 +948,13 @@ func CreateProject(s *xorm.Session, project *Project, auth web.Auth, createBackl
 		}
 	}
 
+	if len(project.Assignees) > 0 {
+		err = project.updateProjectAssignees(s, project.Assignees, auth)
+		if err != nil {
+			return err
+		}
+	}
+
 	return events.Dispatch(&ProjectCreatedEvent{
 		Project: project,
 		Doer:    doer,
@@ -971,6 +1013,7 @@ func UpdateProject(s *xorm.Session, project *Project, auth web.Auth, updateProje
 		"position",
 		"done_bucket_id",
 		"default_bucket_id",
+		"end_date",
 	}
 	if project.Description != "" {
 		colsToUpdate = append(colsToUpdate, "description")
@@ -1093,7 +1136,26 @@ func (p *Project) Update(s *xorm.Session, a web.Auth) (err error) {
 		return nil
 	}
 
-	return UpdateProject(s, p, a, false)
+	err = UpdateProject(s, p, a, false)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Project Update - Assignees: %+v", p.Assignees)
+	log.Infof("Project Update - Assignees length: %d", len(p.Assignees))
+	if p.Assignees != nil {
+		log.Infof("Calling updateProjectAssignees with %d assignees", len(p.Assignees))
+		err = p.updateProjectAssignees(s, p.Assignees, a)
+		if err != nil {
+			log.Errorf("Error updating project assignees: %v", err)
+			return err
+		}
+		log.Infof("Successfully updated project assignees")
+	} else {
+		log.Infof("Assignees is nil, skipping update")
+	}
+
+	return nil
 }
 
 func updateProjectLastUpdated(s *xorm.Session, project *Project) error {

@@ -49,7 +49,26 @@
 						<Icon icon="filter" />
 					</span>
 				</div>
+				<div
+					v-if="project.assignees && project.assignees.length > 0"
+					class="responsible-user-wrapper"
+				>
+					<User
+						v-for="user in project.assignees"
+						:key="user.id"
+						:user="user"
+						:avatar-size="18"
+						:show-name="false"
+						class="assignee-avatar"
+					/>
+				</div>
 				<span class="project-menu-title">{{ getProjectTitle(project) }}</span>
+				<span
+					v-if="isOverdue"
+					class="project-overdue"
+				>
+					{{ $t('project.overdue') }}
+				</span>
 			</BaseButton>
 			<BaseButton
 				v-if="project.id > 0 && project.maxPermission !== null && project.maxPermission > PERMISSIONS.READ"
@@ -102,6 +121,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import ProjectSettingsDropdown from '@/components/project/ProjectSettingsDropdown.vue'
 import {getProjectTitle} from '@/helpers/getProjectTitle'
 import ColorBubble from '@/components/misc/ColorBubble.vue'
+import User from '@/components/misc/User.vue'
 import ProjectsNavigation from '@/components/home/ProjectsNavigation.vue'
 import {PERMISSIONS} from '@/constants/permissions'
 
@@ -159,6 +179,13 @@ const isDropTarget = computed(() => {
 	return props.project.id > 0
 		&& props.project.maxPermission !== null
 		&& props.project.maxPermission > PERMISSIONS.READ
+})
+
+const isOverdue = computed(() => {
+	if (!props.project.endDate) return false
+	const date = new Date(props.project.endDate)
+	if (date.getFullYear() < 2000) return false
+	return date < new Date()
 })
 
 const projectStore = useProjectStore()
@@ -305,5 +332,31 @@ const childProjects = computed(() => {
 		box-shadow: inset 0 0 0 2px var(--primary);
 		border-radius: $radius;
 	}
+}
+
+.assignee-avatar {
+	margin-left: -8px;
+	border: 1px solid var(--white);
+	border-radius: 50%;
+	
+	&:first-child {
+		margin-left: 0;
+	}
+}
+
+.responsible-user-wrapper {
+	display: flex;
+	align-items: center;
+	margin-right: 6px;
+}
+
+.project-overdue {
+	color: var(--danger);
+	font-size: 0.75rem;
+	margin-left: 6px;
+	padding: 0 4px;
+	border-radius: 4px;
+	white-space: nowrap;
+	background-color: hsla(var(--danger-hsl), 0.1);
 }
 </style>

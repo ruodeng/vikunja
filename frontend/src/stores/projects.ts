@@ -174,7 +174,7 @@ export const useProjectStore = defineStore('project', () => {
 		
 		try {
 			const updatedProject = await projectService.update(project)
-			setProject(project)
+			setProject(updatedProject)
 
 			// the returned project from projectService.update is the same!
 			// in order to not create a manipulation in pinia store we have to create a new copy
@@ -320,14 +320,26 @@ export function useProject(projectId: MaybeRefOrGetter<IProject['id']>) {
 		() => toValue(projectId),
 		async (projectId) => {
 			const loadedProject = await projectService.get(new ProjectModel({id: projectId}))
-			Object.assign(project, loadedProject)
+			console.log('Loaded project:', loadedProject)
+			console.log('Assignees from server:', loadedProject.assignees)
+			// Properly assign all properties including nested arrays
+			Object.keys(loadedProject).forEach(key => {
+				project[key] = loadedProject[key]
+			})
+			console.log('Project after assignment:', project)
+			console.log('Project assignees after assignment:', project.assignees)
 		},
 		{immediate: true},
 	)
 
 	async function save() {
+		console.log('Saving project:', project)
+		console.log('Project assignees before save:', project.assignees)
 		const updatedProject = await projectStore.updateProject(project)
-		Object.assign(project, updatedProject)
+		// Properly assign all properties including nested arrays
+		Object.keys(updatedProject).forEach(key => {
+			project[key] = updatedProject[key]
+		})
 		success({message: t('project.edit.success')})
 	}
 	

@@ -14,27 +14,36 @@ export default class ProjectModel extends AbstractModel<IProject> implements IPr
 	id = 0
 	title = ''
 	description = ''
-	owner: IUser = UserModel
+	owner: IUser = new UserModel()
+	assignees: IUser[] = []
 	tasks: ITask[] = []
 	isArchived = false
 	hexColor = ''
 	identifier = ''
 	backgroundInformation: unknown | null = null
 	isFavorite = false
-	subscription: ISubscription = null
+	subscription: ISubscription = null as unknown as ISubscription
 	position = 0
 	backgroundBlurHash = ''
 	parentProjectId = 0
 	views: IProjectView[] = []
+	endDate: Date | null = null
 	
-	created: Date = null
-	updated: Date = null
+	created: Date = new Date()
+	updated: Date = new Date()
 
 	constructor(data: Partial<IProject> = {}) {
 		super()
 		this.assignData(data)
 
 		this.owner = new UserModel(this.owner)
+		
+		// Process assignees - convert to UserModel instances
+		if (this.assignees && Array.isArray(this.assignees)) {
+			this.assignees = this.assignees.map(assignee => new UserModel(assignee))
+		} else {
+			this.assignees = []
+		}
 
 		// Make all tasks to task models
 		this.tasks = this.tasks.map(t => {
@@ -53,5 +62,11 @@ export default class ProjectModel extends AbstractModel<IProject> implements IPr
 		
 		this.created = new Date(this.created)
 		this.updated = new Date(this.updated)
+		this.created = new Date(this.created)
+		this.updated = new Date(this.updated)
+		
+		if (this.endDate) {
+			this.endDate = new Date(this.endDate)
+		}
 	}
 }

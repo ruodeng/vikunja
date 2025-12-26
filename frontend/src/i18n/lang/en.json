@@ -274,6 +274,7 @@
       "archiveText": "You won't be able to edit this project or create tasks until you un-archive it.",
       "success": "The project was successfully archived."
     },
+    "overdue": "Overdue",
     "background": {
       "title": "Set project background",
       "remove": "Remove Background",
@@ -794,6 +795,7 @@
   },
   "task": {
     "task": "Task",
+    "dueDate": "Due Date",
     "new": "Create a task",
     "delete": "Delete this task",
     "createSuccess": "The task was successfully created.",
@@ -938,6 +940,7 @@
       "empty": "No description available yet."
     },
     "assignee": {
+      "label": "Assignees",
       "placeholder": "Type to assign a user…",
       "selectPlaceholder": "Assign this user",
       "assignSuccess": "The user has been assigned successfully.",

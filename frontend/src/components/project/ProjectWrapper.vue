@@ -31,6 +31,16 @@
 			<slot name="header" />
 		</div>
 		<CustomTransition name="fade">
+			<div
+				v-if="isOverdue"
+				class="overdue-message mbe-4"
+			>
+				<Message variant="danger">
+					{{ $t('project.overdue') }}
+				</Message>
+			</div>
+		</CustomTransition>
+		<CustomTransition name="fade">
 			<Message
 				v-if="currentProject?.isArchived"
 				variant="warning"
@@ -98,6 +108,16 @@ function getViewTitle(view: IProjectView) {
 	
 	return view.title
 }
+
+const isOverdue = computed(() => {
+	if (!currentProject.value?.endDate) {
+		return false
+	}
+	
+	const now = new Date()
+	const endDate = new Date(currentProject.value.endDate)
+	return endDate < now && !currentProject.value.isArchived
+})
 </script>
 
 <style lang="scss" scoped>

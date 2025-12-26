@@ -22,6 +22,9 @@ export interface IProject extends IAbstract {
 	parentProjectId: number
 	views: IProjectView[]
 	
+	assignees?: IUser[]
+	endDate: Date | null
+	
 	created: Date
 	updated: Date
 }
