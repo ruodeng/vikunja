@@ -1,10 +1,43 @@
 {
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "total_users": "Total Users",
+    "total_tasks": "Total Tasks",
+    "overdue_tasks": "Overdue Tasks",
+    "user_performance": "User Performance",
+    "user": "User",
+    "active_tasks": "Active Tasks",
+    "completed_today": "Completed Today",
+    "overdue": "Overdue",
+    "debug_info": "Debug Info",
+    "api_url": "API URL",
+    "stats_raw": "Stats Raw",
+    "error": "Error",
+    "not_authorized": "You are not authorized to view the admin dashboard.",
+    "failed_to_load": "Failed to load dashboard statistics",
+    "user_details": "User Details",
+    "task_title": "Task Title",
+    "due_date": "Due Date",
+    "status": "Status",
+    "done": "Done",
+    "active": "Active",
+    "id": "ID",
+    "no_tasks": "No tasks found for this user."
+  },
   "home": {
     "welcomeNight": "Good Night {username}!",
     "welcomeMorning": "Good Morning {username}!",
     "welcomeDay": "Hi {username}!",
     "welcomeEvening": "Good Evening {username}!",
-    "lastViewed": "Last viewed",
+    "greets": {
+      "morning": "Good morning",
+      "noon": "Good noon",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
+    "lastViewed": "Last viewed projects",
+    "stats": "Overview",
     "addToHomeScreen": "Add this app to your home screen for faster access and improved experience.",
     "goToOverview": "Go to overview",
     "project": {
@@ -794,6 +827,11 @@
   },
   "task": {
     "task": "Task",
+    "stats": {
+      "inProgress": "In Progress",
+      "overdue": "Overdue",
+      "comments": "Comments"
+    },
     "new": "Create a task",
     "delete": "Delete this task",
     "createSuccess": "The task was successfully created.",
@@ -1191,7 +1229,8 @@
     "none": "You don't have any notifications. Have a nice day!",
     "explainer": "Notifications will appear here when actions, projects or tasks you subscribed to happen.",
     "markAllRead": "Mark all notifications as read",
-    "markAllReadSuccess": "Successfully marked all notifications as read."
+    "markAllReadSuccess": "Successfully marked all notifications as read.",
+    "markRead": "Mark as read"
   },
   "quickActions": {
     "commands": "Commands",

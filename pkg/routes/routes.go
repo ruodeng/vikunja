@@ -79,6 +79,7 @@ import (
 	"code.vikunja.io/api/pkg/plugins"
 	apiv1 "code.vikunja.io/api/pkg/routes/api/v1"
 	"code.vikunja.io/api/pkg/routes/caldav"
+	"code.vikunja.io/api/pkg/user"
 	"code.vikunja.io/api/pkg/version"
 	"code.vikunja.io/api/pkg/web/handler"
 
@@ -688,6 +689,32 @@ func registerAPIRoutes(a *echo.Group) {
 		unauthenticatedPluginGroup := n.Group("/plugins")
 
 		plugins.RegisterPluginRoutes(authenticatedPluginGroup, unauthenticatedPluginGroup)
+	}
+
+	// Admin Dashboard
+	admin := a.Group("/admin")
+	admin.Use(checkAdminMiddleware())
+	admin.GET("/dashboard", apiv1.GetDashboardStats)
+	admin.GET("/users/:id", apiv1.GetUserDetail)
+}
+
+func checkAdminMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			u, err := user.GetCurrentUser(c)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusForbidden, "Could not determine user")
+			}
+
+			admins := config.ServiceAdminUsernames.GetStringSlice()
+			for _, admin := range admins {
+				if admin == u.Username {
+					return next(c)
+				}
+			}
+
+			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		}
 	}
 }
 

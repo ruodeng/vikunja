@@ -1,9 +1,5 @@
 <template>
 	<div class="content has-text-centered">
-		<h2 v-if="salutation">
-			{{ salutation }}
-		</h2>
-
 		<Message
 			v-if="deletionScheduledAt !== null"
 			variant="danger"
@@ -23,6 +19,8 @@
 			class="is-max-width-desktop"
 			@taskAdded="updateTaskKey"
 		/>
+		<DashboardStats />
+		<DashboardComments />
 		<ImportHint v-if="tasksLoaded" />
 		<div
 			v-if="projectHistory.length > 0"
@@ -37,6 +35,7 @@
 		</div>
 		<ShowTasks
 			v-if="projectStore.hasProjects"
+			id="dashboard-tasks"
 			:key="showTasksKey"
 			:label-ids="labelIds"
 			class="show-tasks"
@@ -55,16 +54,15 @@ import ShowTasks from '@/views/tasks/ShowTasks.vue'
 import ProjectCardGrid from '@/components/project/partials/ProjectCardGrid.vue'
 import AddTask from '@/components/tasks/AddTask.vue'
 import ImportHint from '@/components/home/ImportHint.vue'
+import DashboardComments from '@/components/home/DashboardComments.vue'
+import DashboardStats from '@/components/home/DashboardStats.vue'
 
 import {getHistory} from '@/modules/projectHistory'
 import {parseDateOrNull} from '@/helpers/parseDateOrNull'
 import {formatDateSince, formatDisplayDate} from '@/helpers/time/formatDate'
-import {useDaytimeSalutation} from '@/composables/useDaytimeSalutation'
-
 import {useProjectStore} from '@/stores/projects'
 import {useAuthStore} from '@/stores/auth'
-
-const salutation = useDaytimeSalutation()
+import type {IProject} from '@/modelTypes/IProject'
 
 const authStore = useAuthStore()
 const projectStore = useProjectStore()
@@ -79,12 +77,15 @@ const projectHistory = computed(() => {
 	
 	return getHistory()
 		.map(l => projectStore.projects[l.id])
-		.filter(l => Boolean(l))
+		.filter(l => Boolean(l)) as IProject[]
 })
 
 const tasksLoaded = ref(false)
 
-const deletionScheduledAt = computed(() => parseDateOrNull(authStore.info?.deletionScheduledAt))
+const deletionScheduledAt = computed(() => {
+	const date = parseDateOrNull(authStore.info?.deletionScheduledAt)
+	return date || null
+})
 
 // Extract label IDs from query parameter
 const labelIds = computed(() => {
@@ -92,7 +93,8 @@ const labelIds = computed(() => {
 	if (!labelsParam) {
 		return undefined
 	}
-	return Array.isArray(labelsParam) ? labelsParam : [labelsParam]
+	const params = Array.isArray(labelsParam) ? labelsParam : [labelsParam]
+	return params.filter((p): p is string => p !== null)
 })
 
 // This is to reload the tasks list after adding a new task through the global task add.

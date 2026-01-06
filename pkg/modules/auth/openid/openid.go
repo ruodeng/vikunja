@@ -282,9 +282,7 @@ func getOrCreateUser(s *xorm.Session, cl *claims, provider *Provider, idToken *o
 
 		// try finding the user on fallback mappingproperties
 
-		searchUser := &user.User{
-			Issuer: user.IssuerLocal,
-		}
+		searchUser := &user.User{}
 		if provider.UsernameFallback {
 			// Match oidc subject on username as each is unique identifier in its own referential
 			// Discouraged if multiple account providers are used.
@@ -322,7 +320,18 @@ func getOrCreateUser(s *xorm.Session, cl *claims, provider *Provider, idToken *o
 		if err != nil {
 			return nil, err
 		}
-	} else if alreadyCreatedFromIssuer {
+	} else {
+		// User exists (either direct match or fallback)
+
+		// Update issuer metadata if we found the user via fallback
+		if fallbackMatchFound {
+			u.Issuer = idToken.Issuer
+			u.Subject = idToken.Subject
+			_, err := s.ID(u.ID).Cols("issuer", "subject").Update(u)
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		// try updating user.Name and/or user.Email if necessary
 		if cl.Email != u.Email {

@@ -27,6 +27,17 @@
 						{{ $t('navigation.overview') }}
 					</RouterLink>
 				</li>
+				<li v-if="authStore.info?.isAdmin">
+					<RouterLink
+						v-shortcut="'g d'"
+						:to="{ name: 'admin.dashboard'}"
+					>
+						<span class="menu-item-icon icon">
+							<Icon icon="chart-line" />
+						</span>
+						{{ $t('admin.dashboard') }}
+					</RouterLink>
+				</li>
 				<li>
 					<RouterLink
 						v-shortcut="'g u'"
@@ -132,12 +143,14 @@ import Logo from '@/components/home/Logo.vue'
 import Loading from '@/components/misc/Loading.vue'
 
 import {useBaseStore} from '@/stores/base'
+import {useAuthStore} from '@/stores/auth'
 import {useProjectStore} from '@/stores/projects'
 import ProjectsNavigation from '@/components/home/ProjectsNavigation.vue'
 import type {IProject} from '@/modelTypes/IProject'
 import {useSidebarResize} from '@/composables/useSidebarResize'
 
 const baseStore = useBaseStore()
+const authStore = useAuthStore()
 const projectStore = useProjectStore()
 
 const {sidebarWidth, isResizing, startResize, isMobile} = useSidebarResize()
@@ -224,7 +237,6 @@ const savedFilterProjects = computed(() => projectStore.savedFilterProjects as I
 	.list-menu-link,
 	li > a {
 		padding-inline-start: 2rem;
-		display: inline-block;
 
 		.icon {
 			padding-block-end: .25rem;

@@ -1,4 +1,4 @@
-import {library} from '@fortawesome/fontawesome-svg-core'
+import { library } from '@fortawesome/fontawesome-svg-core'
 import {
 	faAlignLeft,
 	faAngleRight,
@@ -17,6 +17,7 @@ import {
 	faCalendar,
 	faCheck,
 	faCheckDouble,
+	faChartLine,
 	faChessKnight,
 	faChevronDown,
 	faCircleInfo,
@@ -94,9 +95,9 @@ import {
 	faTimesCircle,
 	faCircleQuestion, faFaceLaugh,
 } from '@fortawesome/free-regular-svg-icons'
-import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-import type {FontAwesomeIcon as FontAwesomeIconFixedTypes} from '@/types/vue-fontawesome'
+import type { FontAwesomeIcon as FontAwesomeIconFixedTypes } from '@/types/vue-fontawesome'
 
 library.add(faBold)
 library.add(faUndo)
@@ -125,6 +126,7 @@ library.add(faCalendar)
 library.add(faCalendarAlt)
 library.add(faCheck)
 library.add(faCheckDouble)
+library.add(faChartLine)
 library.add(faChessKnight)
 library.add(faChevronDown)
 library.add(faCircleInfo)

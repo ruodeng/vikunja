@@ -637,17 +637,20 @@ func GetAllParentProjects(s *xorm.Session, projectID int64) (allProjects map[int
 	allProjects = make(map[int64]*Project)
 	err = s.SQL(`WITH RECURSIVE all_projects AS (
 		    SELECT
-		        p.*
+		        p.*,
+				0 as level
 		    FROM
 		        projects p
 		    WHERE
 		        p.id = ?
 		    UNION ALL
 		    SELECT
-		        p.*
+		        p.*,
+				pc.level + 1
 		    FROM
 		        projects p
 		            INNER JOIN all_projects pc ON p.ID = pc.parent_project_id
+			WHERE pc.level < 50
 		)
 		SELECT DISTINCT * FROM all_projects`, projectID).Find(&allProjects)
 	return
@@ -792,22 +795,33 @@ func addMaxPermissionToProjects(s *xorm.Session, projects []*Project, u *user.Us
 
 // CheckIsArchived returns an ErrProjectIsArchived if the project or any of its parent projects is archived.
 func (p *Project) CheckIsArchived(s *xorm.Session) (err error) {
-	if p.ParentProjectID > 0 {
-		p := &Project{ID: p.ParentProjectID}
-		return p.CheckIsArchived(s)
-	}
-
-	if p.ID == 0 { // don't check new projects
+	if p.ID == 0 {
+		// New project, check parent
+		if p.ParentProjectID == 0 {
+			return nil
+		}
+		parents, err := GetAllParentProjects(s, p.ParentProjectID)
+		if err != nil {
+			return err
+		}
+		for _, parent := range parents {
+			if parent.IsArchived {
+				return ErrProjectIsArchived{ProjectID: parent.ID}
+			}
+		}
 		return nil
 	}
 
-	project, err := GetProjectSimpleByID(s, p.ID)
+	// Existing project, check self and parents
+	parents, err := GetAllParentProjects(s, p.ID)
 	if err != nil {
 		return err
 	}
 
-	if project.IsArchived {
-		return ErrProjectIsArchived{ProjectID: p.ID}
+	for _, parent := range parents {
+		if parent.IsArchived {
+			return ErrProjectIsArchived{ProjectID: parent.ID}
+		}
 	}
 
 	return nil

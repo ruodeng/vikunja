@@ -1,4 +1,29 @@
 {
+	"admin": {
+		"dashboard": "管理仪表板",
+		"total_users": "总用户数",
+		"total_tasks": "总任务数",
+		"overdue_tasks": "逾期任务",
+		"user_performance": "用户表现",
+		"user": "用户",
+		"active_tasks": "活跃任务",
+		"completed_today": "今日完成",
+		"overdue": "逾期",
+		"debug_info": "调试信息",
+		"api_url": "API 地址",
+		"stats_raw": "原始统计数据",
+		"error": "错误",
+		"not_authorized": "您无权查看管理仪表板。",
+		"failed_to_load": "加载仪表板统计数据失败",
+		"user_details": "用户详情",
+		"task_title": "任务标题",
+		"due_date": "截止日期",
+		"status": "状态",
+		"done": "已完成",
+		"active": "进行中",
+		"id": "ID",
+		"no_tasks": "该用户没有任务。"
+	},
 	"404": {
 		"title": "未找到数据",
 		"text": "您请求的页面不存在。"
@@ -9,6 +34,7 @@
 		"welcomeDay": "嗨~，{username}！",
 		"welcomeEvening": "中午好，{username}！",
 		"lastViewed": "最近查看",
+		"stats": "概览",
 		"addToHomeScreen": "将此应用程序添加到您的主屏幕以便更快地访问和改善体验。",
 		"goToOverview": "转到概览",
 		"project": {
@@ -754,6 +780,11 @@
 	},
 	"task": {
 		"task": "任务",
+		"stats": {
+			"inProgress": "进行中",
+			"overdue": "已逾期",
+			"comments": "通知"
+		},
 		"new": "新建任务",
 		"delete": "删除此任务",
 		"createSuccess": "成功创建任务",
@@ -1135,7 +1166,8 @@
 		"none": "没有任何通知。 祝你今天过得愉快！",
 		"explainer": "当订阅的项目或任务发生操作时，通知会出现在这里。",
 		"markAllRead": "将所有通知标为已读",
-		"markAllReadSuccess": "成功标记所有通知为已读。"
+		"markAllReadSuccess": "成功标记所有通知为已读。",
+		"markRead": "标为已读"
 	},
 	"quickActions": {
 		"commands": "命令",

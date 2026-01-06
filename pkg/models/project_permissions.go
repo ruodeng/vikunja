@@ -19,6 +19,7 @@ package models
 import (
 	"errors"
 
+	"code.vikunja.io/api/pkg/config"
 	"code.vikunja.io/api/pkg/user"
 	"code.vikunja.io/api/pkg/utils"
 	"code.vikunja.io/api/pkg/web"
@@ -45,6 +46,16 @@ func (p *Project) CanWrite(s *xorm.Session, a web.Auth) (bool, error) {
 	errIsArchived := originalProject.CheckIsArchived(s)
 
 	var canWrite bool
+
+	// // Check if the user is a global admin
+	// currentUser, err := user.GetFromAuth(a)
+	// if err == nil {
+	// 	for _, admin := range config.ServiceAdminUsernames.GetStringSlice() {
+	// 		if admin == currentUser.Username {
+	// 			return true, errIsArchived
+	// 		}
+	// 	}
+	// }
 
 	// Check if we're dealing with a share auth
 	shareAuth, ok := a.(*LinkSharing)
@@ -100,6 +111,16 @@ func (p *Project) CanRead(s *xorm.Session, a web.Auth) (bool, int, error) {
 	}
 
 	*p = *originalProject
+
+	// Check if the user is a global admin
+	currentUser, err := user.GetFromAuth(a)
+	if err == nil {
+		for _, admin := range config.ServiceAdminUsernames.GetStringSlice() {
+			if admin == currentUser.Username {
+				return true, int(PermissionAdmin), nil
+			}
+		}
+	}
 
 	// Check if we're dealing with a share auth
 	shareAuth, ok := a.(*LinkSharing)
@@ -188,6 +209,16 @@ func (p *Project) IsAdmin(s *xorm.Session, a web.Auth) (bool, error) {
 		return false, err
 	}
 
+	// // Check if the user is a global admin
+	// currentUser, err := user.GetFromAuth(a)
+	// if err == nil {
+	// 	for _, admin := range config.ServiceAdminUsernames.GetStringSlice() {
+	// 		if admin == currentUser.Username {
+	// 			return true, nil
+	// 		}
+	// 	}
+	// }
+
 	// Check if we're dealing with a share auth
 	shareAuth, ok := a.(*LinkSharing)
 	if ok {
@@ -271,7 +302,8 @@ WITH RECURSIVE
                ph.level + 1,
                ph.original_project_id
         FROM projects p
-                 INNER JOIN project_hierarchy ph ON p.id = ph.parent_project_id),
+                 INNER JOIN project_hierarchy ph ON p.id = ph.parent_project_id
+        WHERE ph.level < 50),
 
     -- Calculate max team permission for each project/user combination
     max_team_permissions AS (

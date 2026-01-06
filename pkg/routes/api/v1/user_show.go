@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"time"
 
+	"code.vikunja.io/api/pkg/config"
 	"code.vikunja.io/api/pkg/modules/auth/openid"
 
 	"code.vikunja.io/api/pkg/user"
@@ -39,6 +40,7 @@ type UserWithSettings struct {
 	DeletionScheduledAt time.Time     `json:"deletion_scheduled_at"`
 	IsLocalUser         bool          `json:"is_local_user"`
 	AuthProvider        string        `json:"auth_provider"`
+	IsAdmin             bool          `json:"is_admin"`
 }
 
 // UserShow gets all information about the current user
@@ -89,6 +91,15 @@ func UserShow(c echo.Context) error {
 	us.AuthProvider, err = getAuthProviderName(u)
 	if err != nil {
 		return handler.HandleHTTPError(err)
+	}
+
+	// Check if user is admin
+	admins := config.ServiceAdminUsernames.GetStringSlice()
+	for _, admin := range admins {
+		if admin == u.Username {
+			us.IsAdmin = true
+			break
+		}
 	}
 
 	return c.JSON(http.StatusOK, us)

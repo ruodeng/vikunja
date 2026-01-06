@@ -46,7 +46,7 @@
 			</h1>
 			<div class="box has-text-start view">
 				<RouterView />
-				<PoweredByLink utm-medium="link_share" />
+				<!-- <PoweredByLink utm-medium="link_share" /> -->
 			</div>
 		</div>
 	</div>

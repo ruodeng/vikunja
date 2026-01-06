@@ -141,7 +141,13 @@ async function loadNotifications() {
 	}
 	// We're recreating the notification service here to make sure it uses the latest api user token
 	const notificationService = new NotificationService()
-	allNotifications.value = await notificationService.getAll()
+	try {
+		allNotifications.value = await notificationService.getAll()
+	} catch (e: any) {
+		if (e.response && e.response.status === 401) {
+			clearInterval(interval)
+		}
+	}
 }
 
 function hidePopup(e) {
